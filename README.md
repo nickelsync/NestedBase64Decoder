@@ -2,14 +2,11 @@
 
 A modern web application that allows you to decode multiple layers of base64 encoded strings with QR code scanning support.
 
-![Nested Base64 Decoder Screenshot](https://via.placeholder.com/800x400?text=Nested+Base64+Decoder)
-
 ## Features
 
 - **Elegant Black & White Design**: Clean, professional interface with a modern monochrome aesthetic
 - **Multi-layer Base64 Decoding**: Decode up to 10 layers of nested base64 encoding
 - **QR Code Scanner**: Scan QR codes containing base64 strings directly using your device's camera
-- **Gallery Upload**: Choose QR code images from your device's gallery
 - **URL Detection**: Automatic detection and linking of URLs in decoded results
 - **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
 - **Detailed Logs**: View step-by-step decoding process for each layer
@@ -43,7 +40,7 @@ No installation required! This is a client-side application that runs entirely i
 
 ### Option 1: Visit the Live Demo
 
-Access the live application at: [https://yourusername.github.io/base64-decoder/](https://yourusername.github.io/base64-decoder/)
+Access the live application at: [https://nickelsync.github.io/NestedBase64Decoder/](https://nickelsync.github.io/NestedBase64Decoder/)
 
 ### Option 2: Run Locally
 
@@ -83,7 +80,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - [jsQR](https://github.com/cozmo/jsQR) for QR code detection
 - Inspired by the need for a simple, elegant base64 decoder with QR capabilities
-
----
-
-Created with ❤️ by [Your Name]
