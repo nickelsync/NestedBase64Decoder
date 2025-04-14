@@ -17,7 +17,7 @@
   <h1 class="text-2xl font-bold text-center mb-6">QR Scanner & Base64 Decoder</h1>
 
   <div id="reader" class="w-full max-w-sm"></div>
-  
+
   <input type="file" id="file-input" accept="image/*" class="mt-4" />
 
   <div class="mt-6 w-full max-w-md">
@@ -71,9 +71,10 @@
 
     Html5Qrcode.getCameras().then(devices => {
       if (devices && devices.length) {
-        const cameraId = devices[0].id;
+        // Gunakan kamera belakang jika tersedia
+        const backCamera = devices.find(device => device.label.toLowerCase().includes('back')) || devices[0];
         html5QrCode.start(
-          cameraId,
+          backCamera.id,
           { fps: 10, qrbox: 250 },
           qrCodeMessage => {
             const decoded = decodeBase64Nested(qrCodeMessage);
