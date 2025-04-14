@@ -25,6 +25,12 @@
     <button id="copy-btn" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Copy Result</button>
   </div>
 
+  <div class="mt-8 w-full max-w-md">
+    <h2 class="text-lg font-semibold mb-2">Manual Base64 Decode</h2>
+    <textarea id="manual-input" rows="4" class="w-full p-2 border border-gray-300 rounded mb-2" placeholder="Masukkan base64 nested di sini..."></textarea>
+    <button id="manual-decode" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Decode</button>
+  </div>
+
   <script>
     const resultEl = document.getElementById("result");
     const copyBtn = document.getElementById("copy-btn");
@@ -71,7 +77,6 @@
 
     Html5Qrcode.getCameras().then(devices => {
       if (devices && devices.length) {
-        // Gunakan kamera belakang jika tersedia
         const backCamera = devices.find(device => device.label.toLowerCase().includes('back')) || devices[0];
         html5QrCode.start(
           backCamera.id,
@@ -102,6 +107,16 @@
         .catch(err => {
           resultEl.innerText = `Gagal scan dari galeri: ${err}`;
         });
+    });
+
+    const manualInput = document.getElementById("manual-input");
+    const manualDecodeBtn = document.getElementById("manual-decode");
+
+    manualDecodeBtn.addEventListener("click", () => {
+      const input = manualInput.value.trim();
+      const decoded = decodeBase64Nested(input);
+      showResult(decoded);
+      if (/^https?:\/\//.test(decoded)) window.open(decoded, '_blank');
     });
   </script>
 </body>
