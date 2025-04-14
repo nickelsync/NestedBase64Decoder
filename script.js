@@ -21,8 +21,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // QR scanner variables
     let videoStream = null;
     
-    // Example string - can be removed for production
-    encodedInput.value = "VjFaV2IxVXdNVWhVYTJ4VlZrWndUbHBXVW5OamJHeHhVMnM1YkdFemFEQlhhMmhoWVZVeGRGVnVjRmhpUlRCNFdWY3hTbVZWTVVsWGJVWnBWa2QzTVZkWGVHOVViVkp6WTBWU1VGWXphRTVhVjNSaFUwWldWMVp1VG10TlZscFhXbFZhVTFkdFZuUlZhMnhWVFZaWk1GVnJXa3RXYXpGRlUyeGtWMVpVVmxoWGJGcHJUVVphUjJJelpHbFNNMUp2Vm0weE5GVnNWbkZTYkU1UFlYcEdXRll5TVc5V01rWnlVMnh3VlZac1NtaFZWM2hIWkZaT2MyRkdjR3hXUlZZMlZrUkdXazVYU2tkWGFscFNZa1Z3VTFSVVNtOVZNVkpGVkcxR2FsSnVRbHBYYTJONFlWVXdkMk5FUWxaU1JUVllXbGN4VDFKVk1WaFBWMFpYVFVad2VWWXllRzlUYkVKU1VGUXdQUT09";
+    // Clear the example string - will be filled only after scanning
+    encodedInput.value = "";
     
     // Start camera when button is clicked
     startCameraBtn.addEventListener('click', function() {
@@ -75,27 +75,41 @@ document.addEventListener('DOMContentLoaded', function() {
             // Get image data for QR code detection
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             
-            // Attempt to detect QR code
-            const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: "dontInvert",
-            });
-            
-            // If QR code found
-            if (code) {
-                // Display the scanned content
-                scannedContent.textContent = code.data;
-                scanResult.style.display = 'block';
+            try {
+                // Attempt to detect QR code
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
                 
-                // Set the scanned content to the input field
-                encodedInput.value = code.data;
-                
-                // Stop the camera
-                stopCameraBtn.click();
-                
-                // Auto decode after scanning
-                decodeBtn.click();
-                
-                return;
+                // If QR code found
+                if (code) {
+                    console.log("QR Code detected:", code.data);
+                    
+                    // Display the scanned content
+                    scannedContent.textContent = code.data;
+                    scanResult.style.display = 'block';
+                    
+                    // Set the scanned content to the input field
+                    encodedInput.value = code.data;
+                    
+                    // Stop the camera
+                    if (videoStream) {
+                        videoStream.getTracks().forEach(track => {
+                            track.stop();
+                        });
+                        video.srcObject = null;
+                        scannerContainer.style.display = 'none';
+                    }
+                    
+                    // Ensure we immediately perform the decode
+                    setTimeout(() => {
+                        performDecode(code.data);
+                    }, 500);
+                    
+                    return;
+                }
+            } catch (error) {
+                console.error("Error in QR scanning:", error);
             }
         }
         
@@ -107,19 +121,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // No gallery logic needed
     
-    // Decode button event
-    decodeBtn.addEventListener('click', function() {
-        const encoded = encodedInput.value.trim();
+    // Standalone function to perform the decoding
+    function performDecode(encodedString) {
         const layers = parseInt(layersInput.value);
         
-        if (!encoded) {
-            alert('Please enter a base64 encoded string');
+        if (!encodedString) {
+            alert('No base64 encoded string provided');
             return;
         }
         
         if (isNaN(layers) || layers < 1 || layers > 10) {
-            alert('Please enter a valid number of layers (1-10)');
-            return;
+            // Default to 5 layers if invalid
+            layersInput.value = 5;
         }
         
         // Clear previous results
@@ -129,13 +142,23 @@ document.addEventListener('DOMContentLoaded', function() {
         resultContainer.style.display = 'block';
         
         // Decode the string
-        const result = decodeMultipleBase64(encoded, layers);
+        console.log("Starting decode with string:", encodedString);
+        const result = decodeMultipleBase64(encodedString, parseInt(layersInput.value));
         
         // Check if the result contains a URL
         if (isValidURL(result)) {
             linkDetector.style.display = 'block';
             detectedLink.innerHTML = `<a href="${result}" target="_blank">${result}</a>`;
         }
+        
+        // Scroll to the results
+        resultContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // Decode button event
+    decodeBtn.addEventListener('click', function() {
+        const encoded = encodedInput.value.trim();
+        performDecode(encoded);
     });
     
     function decodeMultipleBase64(str, layers) {
@@ -168,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
             '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
             '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
             '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
-            '(\\#[-a-z\\d_]*)?$', 'i'); // fragment locator
+            '(\\#[-a-z\\d_]*)?, 'i'); // fragment locator
         return pattern.test(str);
     }
 });
