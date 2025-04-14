@@ -1,1 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nested Base64 Decoder</title>
+    <!-- Include jsQR library for QR code scanning -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Nested Base64 Decoder</h1>
+    
+    <div class="container">
+        <!-- QR Code Scanner Section -->
+        <div class="qr-section">
+            <h2>QR Code Scanner</h2>
+            <p>Scan a QR code containing a base64 encoded string</p>
+            
+            <div class="input-methods">
+                <div class="camera-toggle">
+                    <button id="start-camera">Start Camera</button>
+                </div>
+                
+                <div class="gallery-upload">
+                    <label for="file-input" class="file-label">Choose from Gallery</label>
+                    <input type="file" id="file-input" accept="image/*" class="file-input">
+                </div>
+            </div>
+            
+            <div class="scanner-container" id="scanner-container">
+                <video id="video"></video>
+                <canvas id="canvas"></canvas>
+                
+                <div class="scanner-actions">
+                    <button id="stop-camera">Stop Camera</button>
+                </div>
+            </div>
+            
+            <div class="image-preview-container" id="image-preview-container" style="display: none;">
+                <img id="image-preview" alt="Selected image">
+                <div class="preview-actions">
+                    <button id="process-image">Process Image</button>
+                    <button id="cancel-image">Cancel</button>
+                </div>
+            </div>
+            
+            <div class="scan-result" id="scan-result">
+                <div class="result-title">Scanned QR Code:</div>
+                <div id="scanned-content"></div>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="form-group">
+            <label for="encoded-input">Enter Base64 Encoded String:</label>
+            <textarea id="encoded-input" placeholder="Paste your base64 encoded string here or scan a QR code..."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="layers">Number of Encoding Layers:</label>
+            <input type="number" id="layers" min="1" max="10" value="5">
+        </div>
+        
+        <button id="decode-btn">Decode</button>
+        
+        <div class="result" id="result-container" style="display: none;">
+            <div class="result-title">Decoding Log:</div>
+            <div class="logs" id="logs"></div>
+            
+            <div class="result-title">Final Decoded Result:</div>
+            <div class="decoded-content" id="final-result"></div>
+            
+            <div class="link-detector" id="link-detector" style="display: none;">
+                <div class="result-title">Detected URL:</div>
+                <div class="detected-link" id="detected-link"></div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Nested Base64 Decoder | <a href="https://github.com/yourusername/base64-decoder" target="_blank">View on GitHub</a></p>
+    </footer>
 
+    <script src="script.js"></script>
+</body>
+</html>
