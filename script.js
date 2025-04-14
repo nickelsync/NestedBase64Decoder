@@ -18,24 +18,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const scanResult = document.getElementById('scan-result');
     const scannedContent = document.getElementById('scanned-content');
     
-    // Gallery elements
-    const fileInput = document.getElementById('file-input');
-    const imagePreviewContainer = document.getElementById('image-preview-container');
-    const imagePreview = document.getElementById('image-preview');
-    const processImageBtn = document.getElementById('process-image');
-    const cancelImageBtn = document.getElementById('cancel-image');
+    // QR scanner variables
+    let videoStream = null;
     
     // Example string - can be removed for production
     encodedInput.value = "VjFaV2IxVXdNVWhVYTJ4VlZrWndUbHBXVW5OamJHeHhVMnM1YkdFemFEQlhhMmhoWVZVeGRGVnVjRmhpUlRCNFdWY3hTbVZWTVVsWGJVWnBWa2QzTVZkWGVHOVViVkp6WTBWU1VGWXphRTVhVjNSaFUwWldWMVp1VG10TlZscFhXbFZhVTFkdFZuUlZhMnhWVFZaWk1GVnJXa3RXYXpGRlUyeGtWMVpVVmxoWGJGcHJUVVphUjJJelpHbFNNMUp2Vm0weE5GVnNWbkZTYkU1UFlYcEdXRll5TVc5V01rWnlVMnh3VlZac1NtaFZWM2hIWkZaT2MyRkdjR3hXUlZZMlZrUkdXazVYU2tkWGFscFNZa1Z3VTFSVVNtOVZNVkpGVkcxR2FsSnVRbHBYYTJONFlWVXdkMk5FUWxaU1JUVllXbGN4VDFKVk1WaFBWMFpYVFVad2VWWXllRzlUYkVKU1VGUXdQUT09";
     
-    // QR Scanner Logic
-    let videoStream = null;
-    
     // Start camera when button is clicked
     startCameraBtn.addEventListener('click', function() {
-        // Hide image preview if visible
-        imagePreviewContainer.style.display = 'none';
-        
         // Check if browser supports getUserMedia
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             // Start camera with video only
@@ -102,8 +92,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Stop the camera
                 stopCameraBtn.click();
                 
-                // Optional: auto decode after scanning
-                // decodeBtn.click();
+                // Auto decode after scanning
+                decodeBtn.click();
                 
                 return;
             }
@@ -115,77 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Gallery upload logic
-    fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        
-        if (file) {
-            // Stop camera if running
-            if (videoStream) {
-                stopCameraBtn.click();
-            }
-            
-            // Create file reader to read the file
-            const reader = new FileReader();
-            
-            // When file is loaded
-            reader.onload = function(event) {
-                // Display image preview
-                imagePreview.src = event.target.result;
-                imagePreviewContainer.style.display = 'block';
-                scanResult.style.display = 'none';
-            };
-            
-            // Read the file as Data URL
-            reader.readAsDataURL(file);
-        }
-    });
-    
-    // Process QR code from uploaded image
-    processImageBtn.addEventListener('click', function() {
-        // Create a temporary canvas
-        const tempCanvas = document.createElement('canvas');
-        const tempCtx = tempCanvas.getContext('2d');
-        
-        // Set canvas dimensions to match image dimensions
-        tempCanvas.width = imagePreview.naturalWidth;
-        tempCanvas.height = imagePreview.naturalHeight;
-        
-        // Draw image to canvas
-        tempCtx.drawImage(imagePreview, 0, 0, tempCanvas.width, tempCanvas.height);
-        
-        // Get image data for QR code detection
-        const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-        
-        // Attempt to detect QR code
-        const code = jsQR(imageData.data, imageData.width, imageData.height, {
-            inversionAttempts: "dontInvert",
-        });
-        
-        // Check if QR code was found
-        if (code) {
-            // Display the scanned content
-            scannedContent.textContent = code.data;
-            scanResult.style.display = 'block';
-            
-            // Set the scanned content to the input field
-            encodedInput.value = code.data;
-            
-            // Hide image preview
-            imagePreviewContainer.style.display = 'none';
-            
-            // Optional: auto decode after scanning
-            // decodeBtn.click();
-        } else {
-            alert('No QR code found in the image. Please try another image.');
-        }
-    });
-    
-    // Cancel image preview
-    cancelImageBtn.addEventListener('click', function() {
-        imagePreviewContainer.style.display = 'none';
-        fileInput.value = '';
-    });
+    // No gallery logic needed
     
     // Decode button event
     decodeBtn.addEventListener('click', function() {
