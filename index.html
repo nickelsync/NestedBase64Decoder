@@ -1,73 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nested Base64 Decoder</title>
-    <!-- Include jsQR library for QR code scanning -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Scanner & Decoder</title>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    #reader {
+      border: 4px solid #10b981;
+      border-radius: 1rem;
+    }
+  </style>
 </head>
-<body>
-    <h1>Nested Base64 Decoder</h1>
-    
-    <div class="container">
-        <!-- QR Code Scanner Section -->
-        <div class="qr-section">
-            <h2>QR Code Scanner</h2>
-            <p>Scan a QR code containing a base64 encoded string</p>
-            
-            <div class="camera-toggle">
-                <button id="start-camera">Start Camera</button>
-            </div>
-            
-            <div class="scanner-container" id="scanner-container">
-                <video id="video"></video>
-                <canvas id="canvas"></canvas>
-                
-                <div class="scanner-actions">
-                    <button id="stop-camera">Stop Camera</button>
-                </div>
-            </div>
-            
-            <div class="scan-result" id="scan-result">
-                <div class="result-title">Scanned QR Code:</div>
-                <div id="scanned-content"></div>
-            </div>
-        </div>
-        
-        <div class="divider"></div>
-        
-        <div class="form-group">
-            <label for="encoded-input">Enter Base64 Encoded String:</label>
-            <textarea id="encoded-input" placeholder="Paste your base64 encoded string here or scan a QR code..."></textarea>
-        </div>
-        
-        <div class="form-group">
-            <label for="layers">Number of Encoding Layers:</label>
-            <input type="number" id="layers" min="1" max="10" value="5">
-        </div>
-        
-        <button id="decode-btn">Decode</button>
-        
-        <div class="result" id="result-container" style="display: none;">
-            <div class="result-title">Decoding Log:</div>
-            <div class="logs" id="logs"></div>
-            
-            <div class="result-title">Final Decoded Result:</div>
-            <div class="decoded-content" id="final-result"></div>
-            
-            <div class="link-detector" id="link-detector" style="display: none;">
-                <div class="result-title">Detected URL:</div>
-                <div class="detected-link" id="detected-link"></div>
-            </div>
-        </div>
-    </div>
-    
-    <footer>
-        <p>Nested Base64 Decoder | <a href="https://github.com/yourusername/base64-decoder" target="_blank">View on GitHub</a></p>
-    </footer>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
+  <h1 class="text-2xl font-bold text-center mb-6">QR Scanner & Base64 Decoder</h1>
 
-    <script src="script.js"></script>
+  <div id="reader" class="w-full max-w-sm"></div>
+  
+  <input type="file" id="file-input" accept="image/*" class="mt-4" />
+
+  <div class="mt-6 w-full max-w-md">
+    <p id="result" class="text-green-600 font-medium whitespace-pre-wrap"></p>
+    <button id="copy-btn" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Copy Result</button>
+  </div>
+
+  <script>
+    const resultEl = document.getElementById("result");
+    const copyBtn = document.getElementById("copy-btn");
+    const html5QrCode = new Html5Qrcode("reader");
+
+    function decodeBase64Nested(str, depth = 5) {
+      try {
+        let result = str;
+        for (let i = 0; i < depth; i++) {
+          result = atob(result);
+        }
+        return result;
+      } catch (e) {
+        return str;
+      }
+    }
+
+    function detectType(content) {
+      try {
+        const urlPattern = /^https?:\/\//;
+        if (urlPattern.test(content)) {
+          return `Detected URL:\n${content}`;
+        } else if (content.startsWith('{') || content.startsWith('[')) {
+          const parsed = JSON.parse(content);
+          return `Detected JSON:\n` + JSON.stringify(parsed, null, 2);
+        } else {
+          return `Decoded Text:\n${content}`;
+        }
+      } catch (e) {
+        return `Raw Content:\n${content}`;
+      }
+    }
+
+    function showResult(decoded) {
+      const typeDetected = detectType(decoded);
+      resultEl.innerText = typeDetected;
+    }
+
+    copyBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText(resultEl.innerText).then(() => {
+        alert("Hasil berhasil disalin!");
+      });
+    });
+
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices && devices.length) {
+        const cameraId = devices[0].id;
+        html5QrCode.start(
+          cameraId,
+          { fps: 10, qrbox: 250 },
+          qrCodeMessage => {
+            const decoded = decodeBase64Nested(qrCodeMessage);
+            showResult(decoded);
+            if (/^https?:\/\//.test(decoded)) window.open(decoded, '_blank');
+            html5QrCode.stop();
+          },
+          errorMessage => {
+            console.warn(errorMessage);
+          }
+        );
+      }
+    }).catch(err => console.error("Camera error:", err));
+
+    const fileInput = document.getElementById("file-input");
+    fileInput.addEventListener("change", (e) => {
+      if (e.target.files.length === 0) return;
+      const file = e.target.files[0];
+      html5QrCode.scanFile(file, true)
+        .then(qrCodeMessage => {
+          const decoded = decodeBase64Nested(qrCodeMessage);
+          showResult(decoded);
+          if (/^https?:\/\//.test(decoded)) window.open(decoded, '_blank');
+        })
+        .catch(err => {
+          resultEl.innerText = `Gagal scan dari galeri: ${err}`;
+        });
+    });
+  </script>
 </body>
 </html>
